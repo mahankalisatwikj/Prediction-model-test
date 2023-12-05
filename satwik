@@ -1,0 +1,39 @@
+import pandas as pd
+from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.metrics import mean_absolute_error
+
+# Load the transaction data
+data = pd.read_csv('transactions.csv')
+
+# Clean and preprocess the data
+data.dropna(inplace=True)
+encoder = LabelEncoder()
+data['CustomerID'] = encoder.fit_transform(data['CustomerID'])
+data['ProductID'] = encoder.fit_transform(data['ProductID'])
+
+# Create the target variable
+target = data['next_purchase_date'] - data['purchase_date']
+
+# Feature engineering
+data['purchase_frequency'] = data['next_purchase_date'].dt.days / data['purchase_date'].dt.days.diff()
+data['average_purchase_value'] = data['amount'] / data['quantity']
+data['days_since_last_purchase'] = (data['next_purchase_date'] - data['purchase_date']).dt.days
+data['product_category'] = data['product_id'].apply(lambda x: data['product_category'][x])
+
+# Split the data into training and testing sets
+X = data[['CustomerID', 'ProductID', 'purchase_frequency', 'average_purchase_value', 'days_since_last_purchase', 'product_category']]
+y = target
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+
+# Train the model
+model = GradientBoostingRegressor()
+model.fit(X_train, y_train)
+
+# Predict the next purchase dates for the test data
+y_pred = model.predict(X_test)
+
+# Evaluate the model's performance
+mae = mean_absolute_error(y_test, y_pred)
+print('Mean Absolute Error:', mae)
