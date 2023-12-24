@@ -1,12 +1,14 @@
 #neccecary modules importing
 import pandas as pd
+import datetime
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.metrics import mean_absolute_error
+from sklearn.preprocessing import OrdinalEncoder
 
 #date reading
-data = pd.read_csv('example transaction data.csv')
+data = pd.read_csv('transaction.csv', parse_dates=['purchase_date', 'next_purchase_date'])
 
 #data preprocessing
 data.dropna(inplace=True)
@@ -18,10 +20,10 @@ data['ProductID'] = encoder.fit_transform(data['ProductID'])
 target = data['next_purchase_date'] - data['purchase_date']
 
 #data extraction
-data['purchase_frequency'] = data['next_purchase_date'].dt.days / data['purchase_date'].dt.days.diff()
+data['purchase_frequency'] = data.groupby(['CustomerID', 'ProductID'])[ 'purchase_date'].transform( 'count')
 data['average_purchase_value'] = data['amount'] / data['quantity']
 data['days_since_last_purchase'] = (data['next_purchase_date'] - data['purchase_date']).dt.days
-data['product_category'] = data['product_id'].apply(lambda x: data['product_category'][x])
+data['product_category'] = data['ProductID'].apply(lambda x: data['product_category'][x])
 
 #data splitting
 X = data[['CustomerID', 'ProductID', 'purchase_frequency', 'average_purchase_value', 'days_since_last_purchase', 'product_category']]
