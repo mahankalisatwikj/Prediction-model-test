@@ -45,8 +45,8 @@ mae = mean_absolute_error(y_test, y_pred)
 print('Mean Absolute Error:', mae)
 
 # Get the next expected purchase date for a customer
-customer_id = ID/
-product_id = ID/
+customer_id = 7
+product_id = 3
 
 customer_data = data[data['CustomerID'] == customer_id]
 product_data = customer_data[customer_data['ProductID'] == product_id]
